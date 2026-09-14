@@ -1,0 +1,112 @@
+<mujoco model="delta_robot">
+  <!--
+    Delta robot (Clavel type) with true parallelogram forearms.
+
+    World / reference frame: origin at the CENTER OF THE BASE PLATE,
+    directly ABOVE the actuators. The three actuated shoulder hinges sit
+    0.03 m below the origin (z = -0.03). The end effector works in -z.
+
+    Geometry (must match delta_control.py):
+      R  = 0.15   base radius (center -> shoulder axis)
+      r  = 0.05   effector radius (center -> forearm attachment)
+      L1 = 0.20   upper arm length
+      L2 = 0.40   forearm (rod) length
+      d  = 0.05   parallelogram rod spacing
+      BASE_Z = -0.03  z of the actuator plane in the base frame
+  -->
+  <compiler angle="radian"/>
+
+  <option timestep="0.001" integrator="implicitfast" gravity="0 0 0"/>
+
+  <default>
+    <geom contype="0" conaffinity="0" density="1200"/>
+    <joint damping="0.01"/>
+    <default class="rod">
+      <joint type="ball" damping="0.002"/>
+      <geom type="capsule" size="0.006" rgba="0.25 0.25 0.28 1"/>
+    </default>
+  </default>
+
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.6 0.6 0.6"/>
+  </visual>
+
+  <worldbody>
+    <!-- base frame marker: origin of the reference frame -->
+    <site name="base_frame" pos="0 0 0" size="0.008" rgba="1 0 0 1"/>
+    <geom name="base_plate" type="cylinder" pos="0 0 0.01" size="0.20 0.01"
+          rgba="0.45 0.45 0.5 1"/>
+
+    <!-- ================= ARM 1 (phi = 0 deg) ================= -->
+    <body name="upper_arm_1" pos="0.15 0 -0.03" euler="0 0 0">
+      <joint name="theta1" type="hinge" axis="0 1 0" range="-1.0 1.6" damping="0.05"/>
+      <geom type="capsule" fromto="0 0 0 0.2 0 0" size="0.015" rgba="0.8 0.3 0.1 1"/>
+      <body name="rod_1a" pos="0.2 0.025 0">
+        <joint name="ball_1a" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+      <body name="rod_1b" pos="0.2 -0.025 0">
+        <joint name="ball_1b" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+    </body>
+
+    <!-- ================= ARM 2 (phi = 120 deg) ================= -->
+    <body name="upper_arm_2" pos="-0.075 0.1299038 -0.03" euler="0 0 2.0943951">
+      <joint name="theta2" type="hinge" axis="0 1 0" range="-1.0 1.6" damping="0.05"/>
+      <geom type="capsule" fromto="0 0 0 0.2 0 0" size="0.015" rgba="0.1 0.6 0.2 1"/>
+      <body name="rod_2a" pos="0.2 0.025 0">
+        <joint name="ball_2a" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+      <body name="rod_2b" pos="0.2 -0.025 0">
+        <joint name="ball_2b" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+    </body>
+
+    <!-- ================= ARM 3 (phi = 240 deg) ================= -->
+    <body name="upper_arm_3" pos="-0.075 -0.1299038 -0.03" euler="0 0 4.1887902">
+      <joint name="theta3" type="hinge" axis="0 1 0" range="-1.0 1.6" damping="0.05"/>
+      <geom type="capsule" fromto="0 0 0 0.2 0 0" size="0.015" rgba="0.15 0.3 0.8 1"/>
+      <body name="rod_3a" pos="0.2 0.025 0">
+        <joint name="ball_3a" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+      <body name="rod_3b" pos="0.2 -0.025 0">
+        <joint name="ball_3b" class="rod"/>
+        <geom class="rod" fromto="0 0 0 -0.3 0 -0.2645751"/>
+      </body>
+    </body>
+
+    <!-- ================= MOVING PLATFORM ================= -->
+    <!-- home pose: theta = 0  ->  z = BASE_Z - sqrt(L2^2 - (R+L1-r)^2) -->
+    <body name="platform" pos="0 0 -0.2945751">
+      <freejoint name="platform_free"/>
+      <geom type="cylinder" size="0.06 0.006" rgba="0.9 0.75 0.1 1"/>
+      <site name="ee" pos="0 0 -0.006" size="0.006" rgba="1 0 1 1"/>
+    </body>
+  </worldbody>
+
+  <!-- close the kinematic loops: rod tips welded (point-wise) to the platform -->
+  <equality>
+    <!-- stiff loop-closure -->
+    <connect solref="0.002 1" body1="rod_1a" body2="platform" anchor="-0.3 0 -0.2645751"/>
+    <connect solref="0.002 1" body1="rod_1b" body2="platform" anchor="-0.3 0 -0.2645751"/>
+    <connect solref="0.002 1" body1="rod_2a" body2="platform" anchor="-0.3 0 -0.2645751"/>
+    <connect solref="0.002 1" body1="rod_2b" body2="platform" anchor="-0.3 0 -0.2645751"/>
+    <connect solref="0.002 1" body1="rod_3a" body2="platform" anchor="-0.3 0 -0.2645751"/>
+    <connect solref="0.002 1" body1="rod_3b" body2="platform" anchor="-0.3 0 -0.2645751"/>
+  </equality>
+
+  <actuator>
+    <velocity  name="act1" joint="theta1" kv="10" ctrlrange="-104.72 104.72"/>
+    <velocity  name="act2" joint="theta2" kv="10" ctrlrange="-104.72 104.72"/>
+    <velocity  name="act3" joint="theta3" kv="10" ctrlrange="-104.72 104.72"/>
+  </actuator>
+
+  <sensor>
+    <framepos name="ee_pos" objtype="site" objname="ee"/>
+    <framelinvel name="ee_vel" objtype="site" objname="ee"/>
+  </sensor>
+</mujoco>
