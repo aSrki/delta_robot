@@ -3,3 +3,4 @@ delta.py
 *.png
 *.jpg
 *.jpeg
+/data/*
