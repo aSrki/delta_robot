@@ -3,4 +3,7 @@ delta.py
 *.png
 *.jpg
 *.jpeg
+*.nav
+*.snm
+*.vrb
 /data/*
