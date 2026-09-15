@@ -11,7 +11,7 @@ MuJoCo.
 
 ## Motivation
 
-`qvel = J(qpos)⁻¹ · ee_vel` is exact and cheaper than a network forward pass;
+`ee_vel = J(qpos) · q_vel` is exact and cheaper than a network forward pass;
 this is not an attempt to beat it on accuracy. Deriving the Jacobian by hand
 for a closed-loop mechanism like a delta robot is impractical, and available
 Python robotics libraries do not handle closed-loop kinematic chains well.
